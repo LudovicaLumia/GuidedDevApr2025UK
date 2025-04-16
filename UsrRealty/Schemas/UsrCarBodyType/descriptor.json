@@ -1,0 +1,13 @@
+﻿{
+  "Descriptor": {
+    "UId": "187da141-16ae-4987-9ed3-85cd112708c3",
+    "Name": "UsrCarBodyType",
+    "ModifiedOnUtc": "\/Date(1744800188000)\/",
+    "Parent": {
+      "UId": "11ab4bcb-9b23-4b6d-9c86-520fae925d75",
+      "Name": "BaseLookup"
+    },
+    "ManagerName": "EntitySchemaManager",
+    "Caption": "Car body type"
+  }
+}
