@@ -8,6 +8,7 @@
       "Name": "BaseLookup"
     },
     "ManagerName": "EntitySchemaManager",
-    "Caption": "Car body type"
+    "Caption": "Car body type",
+    "DependsOn": []
   }
 }
