@@ -1,4 +1,4 @@
-define("UsrRealty_FormPage", /**SCHEMA_DEPS*/[]/**SCHEMA_DEPS*/, function/**SCHEMA_ARGS*/()/**SCHEMA_ARGS*/ {
+define("UsrRealty_FormPage", /**SCHEMA_DEPS*/["@creatio-devkit/common"]/**SCHEMA_DEPS*/, function/**SCHEMA_ARGS*/(sdk)/**SCHEMA_ARGS*/ {
 	return {
 		viewConfigDiff: /**SCHEMA_VIEW_CONFIG_DIFF*/[
 			{
@@ -88,6 +88,63 @@ define("UsrRealty_FormPage", /**SCHEMA_DEPS*/[]/**SCHEMA_DEPS*/, function/**SCHE
 				},
 				"parentName": "CardToolsContainer",
 				"propertyName": "items",
+				"index": 1
+			},
+			{
+				"operation": "insert",
+				"name": "ActionsButton",
+				"values": {
+					"type": "crt.Button",
+					"caption": "#ResourceString(ActionsButton_caption)#",
+					"color": "default",
+					"disabled": false,
+					"size": "medium",
+					"iconPosition": "left-icon",
+					"visible": true,
+					"icon": "actions-button-icon",
+					"menuItems": [],
+					"clickMode": "menu"
+				},
+				"parentName": "CardToggleContainer",
+				"propertyName": "items",
+				"index": 0
+			},
+			{
+				"operation": "insert",
+				"name": "RunAvgPriceProcessMenuItem",
+				"values": {
+					"type": "crt.MenuItem",
+					"caption": "#ResourceString(RunAvgPriceProcessMenuItem_caption)#",
+					"visible": true,
+					"clicked": {
+						"request": "crt.RunBusinessProcessRequest",
+						"params": {
+							"processName": "UsrCalcAverageRealtyPriceProcess",
+							"processRunType": "ForTheSelectedPage",
+							"saveAtProcessStart": true,
+							"showNotification": true,
+							"recordIdProcessParameterName": "RealtyIdParameter"
+						}
+					}
+				},
+				"parentName": "ActionsButton",
+				"propertyName": "menuItems",
+				"index": 0
+			},
+			{
+				"operation": "insert",
+				"name": "RunMaxPriceServiceMenuItem",
+				"values": {
+					"type": "crt.MenuItem",
+					"caption": "#ResourceString(RunMaxPriceServiceMenuItem_caption)#",
+					"visible": true,
+					"clicked": {
+						"request": "usr.RunWebServiceButtonRequest",
+					},
+					"icon": "bars-button-icon"
+				},
+				"parentName": "ActionsButton",
+				"propertyName": "menuItems",
 				"index": 1
 			},
 			{
@@ -524,11 +581,14 @@ define("UsrRealty_FormPage", /**SCHEMA_DEPS*/[]/**SCHEMA_DEPS*/, function/**SCHE
 						"request": "crt.LoadDataRequest",
 						"params": {
 							"config": {
-								"loadType": "reload"
+								"loadType": "reload",
+								"useLastLoadParameters": true
 							},
 							"dataSourceName": "GridDetail_vk4xu7uDS"
 						}
-					}
+					},
+					"visible": true,
+					"clickMode": "default"
 				},
 				"parentName": "FlexContainer_2h1wbqf",
 				"propertyName": "items",
@@ -1027,6 +1087,50 @@ define("UsrRealty_FormPage", /**SCHEMA_DEPS*/[]/**SCHEMA_DEPS*/, function/**SCHE
 						var commission = price * percent / 100;
 						request.$context.PDS_UsrCommission_49dlecp = commission;
 					}
+					/* Call the next handler if it exists and return its result. */
+					return next?.handle(request);
+				}
+			},
+            {
+				request: "usr.RunWebServiceButtonRequest",
+				/* Implementation of the custom query handler. */
+				handler: async (request, next) => {
+					console.log("Run web service button works...");
+
+					// get id from type lookup type object
+					var typeObject = await request.$context.PDS_UsrType_xbrke7n;
+					var typeId = "";
+					if (typeObject) {
+						typeId = typeObject.value;
+					}
+
+					// get id from type lookup offer type object
+					var offerTypeObject = await request.$context.PDS_UsrOfferType_oj4o3hp;
+					var offerTypeId = "";
+					if (offerTypeObject) {
+						offerTypeId = offerTypeObject.value;
+					}
+
+                   /* Create an instance of the HTTP client from @creatio-devkit/common. */
+					const httpClientService = new sdk.HttpClientService();
+
+					/* Specify the URL to run web service method. */
+					const baseUrl = Terrasoft.utils.uri.getConfigurationWebServiceBaseUrl();
+					const transferName = "rest";
+					const serviceName = "RealtyService";
+					const methodName = "GetMaxPriceByTypeId";
+					const endpoint = Terrasoft.combinePath(baseUrl, transferName, serviceName, methodName);
+					
+					//const endpoint = "http://localhost/D1_Studio/0/rest/RealtyService/GetMaxPriceByTypeId";
+					/* Send a POST HTTP request. The HTTP client converts the response body from JSON to a JS object automatically. */
+					var params = {
+						realtyTypeId: typeId,
+						realtyOfferTypeId: offerTypeId
+					};
+					const response = await httpClientService.post(endpoint, params);
+
+                    console.log("response max price = " + response.body.GetMaxPriceByTypeIdResult);
+					
 					/* Call the next handler if it exists and return its result. */
 					return next?.handle(request);
 				}
